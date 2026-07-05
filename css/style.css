@@ -1,0 +1,562 @@
+/* かんじのもり — スタイル */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  touch-action: manipulation;
+}
+
+body {
+  font-family: "Hiragino Maru Gothic ProN", "BIZ UDGothic", "Yu Gothic", "Meiryo",
+    sans-serif;
+  background: linear-gradient(160deg, #e8f8ee 0%, #d2f0f7 55%, #fdf3d8 100%);
+  color: #3a4a3f;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+    env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+button {
+  font-family: inherit;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: inherit;
+}
+
+/* ---------- 画面切りかえ ---------- */
+.screen {
+  display: none;
+  height: 100%;
+  flex-direction: column;
+}
+.screen.active {
+  display: flex;
+}
+
+/* ---------- ホーム ---------- */
+#scr-home {
+  align-items: center;
+  justify-content: center;
+}
+.home-inner {
+  width: min(560px, 92vw);
+  text-align: center;
+}
+.app-title {
+  font-size: clamp(2rem, 8vw, 3.2rem);
+  color: #2e7d4f;
+  letter-spacing: 0.06em;
+  text-shadow: 0 3px 0 rgba(255, 255, 255, 0.8);
+}
+.title-emoji {
+  display: inline-block;
+  margin-right: 0.2em;
+  animation: bob 2.4s ease-in-out infinite;
+}
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+.app-sub {
+  margin: 0.3em 0 1.2em;
+  color: #6b8a76;
+  font-size: 1.05rem;
+}
+
+.grade-chips {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 1.4em;
+}
+.chip {
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: #fff;
+  color: #6b8a76;
+  font-size: 1rem;
+  font-weight: bold;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.08);
+  transition: transform 0.1s;
+}
+.chip.active {
+  background: #ffb03a;
+  color: #fff;
+  box-shadow: 0 3px 0 #d98a13;
+}
+.chip:active {
+  transform: translateY(2px);
+}
+
+.mode-buttons {
+  display: grid;
+  gap: 14px;
+}
+.mode-btn {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  align-items: center;
+  column-gap: 16px;
+  text-align: left;
+  padding: 16px 20px;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.1);
+  transition: transform 0.1s;
+}
+.mode-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.1);
+}
+.mode-emoji {
+  grid-row: span 2;
+  font-size: 2.4rem;
+}
+.mode-name {
+  font-size: 1.35rem;
+  font-weight: bold;
+}
+.mode-desc {
+  font-size: 0.88rem;
+  color: #8aa392;
+}
+.mode-btn.karuta .mode-name {
+  color: #e0558a;
+}
+.mode-btn.versus .mode-name {
+  color: #4d7fd6;
+}
+.mode-btn.kotoba .mode-name {
+  color: #3fa25c;
+}
+.mode-btn.zukan .mode-name {
+  color: #b8862f;
+}
+
+/* ---------- ゲーム共通 ---------- */
+.game-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  flex: none;
+}
+.back-btn {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #6b8a76;
+  background: #fff;
+  border-radius: 999px;
+  padding: 8px 16px;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.08);
+}
+.progress {
+  font-size: 1.05rem;
+  font-weight: bold;
+  color: #6b8a76;
+}
+
+/* 読み札 */
+.clue-card {
+  flex: none;
+  margin: 4px auto;
+  width: min(520px, 92vw);
+  background: #fffdf5;
+  border: 3px solid #ffd98a;
+  border-radius: 20px;
+  padding: 12px;
+  text-align: center;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.06);
+}
+.clue-emoji {
+  font-size: clamp(2.2rem, 9vw, 3.4rem);
+  line-height: 1.15;
+}
+.clue-word {
+  font-size: clamp(1.9rem, 8vw, 3rem);
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  margin: 2px 0;
+}
+.blank {
+  display: inline-block;
+  min-width: 1.35em;
+  border: 3px dashed #ffb03a;
+  border-radius: 12px;
+  color: #ffcf80;
+  background: #fff8e8;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+}
+.clue-yomi {
+  font-size: clamp(1.15rem, 4.5vw, 1.5rem);
+  color: #d98a13;
+  font-weight: bold;
+  letter-spacing: 0.12em;
+}
+.clue-yomi.big {
+  font-size: clamp(1.6rem, 7vw, 2.4rem);
+}
+.speak-btn {
+  font-size: 1.2em;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.clue-card.compact {
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+.clue-card.compact .clue-emoji {
+  font-size: 2rem;
+}
+.clue-card.compact .clue-word {
+  font-size: 1.9rem;
+  margin: 0;
+}
+.clue-card.compact .clue-yomi {
+  font-size: 1.15rem;
+}
+
+/* 漢字カード */
+.choices {
+  display: grid;
+  gap: clamp(8px, 2vw, 16px);
+  align-content: center;
+  justify-content: center;
+  flex: 1;
+  padding: 8px 14px calc(14px + env(safe-area-inset-bottom));
+}
+.grid6 {
+  grid-template-columns: repeat(3, minmax(88px, 150px));
+}
+.grid4 {
+  grid-template-columns: repeat(2, minmax(70px, 120px));
+}
+@media (orientation: landscape) {
+  .grid6 {
+    grid-template-columns: repeat(6, minmax(80px, 130px));
+  }
+}
+
+.kanji-card {
+  aspect-ratio: 1;
+  font-size: clamp(2.4rem, 9vw, 4rem);
+  font-weight: bold;
+  background: #fff;
+  border-radius: 18px;
+  border-bottom: 5px solid #d8e5dc;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.07);
+  color: #33413a;
+  transition: transform 0.1s;
+}
+.kanji-card:active {
+  transform: scale(0.95);
+}
+.kanji-card.correct {
+  background: #58c478;
+  border-bottom-color: #379a58;
+  color: #fff;
+  animation: pop 0.45s;
+}
+@keyframes pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.18);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.kanji-card.wrong {
+  background: #ffe3e3;
+  animation: shake 0.4s;
+}
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-7px);
+  }
+  75% {
+    transform: translateX(7px);
+  }
+}
+.kanji-card:disabled:not(.correct) {
+  opacity: 0.45;
+}
+
+/* ---------- たいせん ---------- */
+.vs-scores {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: bold;
+}
+.vs-score {
+  font-size: 1.6rem;
+  min-width: 1.6em;
+  text-align: center;
+  border-radius: 12px;
+  color: #fff;
+}
+.vs-score.p1 {
+  background: #ff6b9d;
+}
+.vs-score.p2 {
+  background: #4d96ff;
+}
+.vs-goal {
+  font-size: 0.85rem;
+  color: #8aa392;
+}
+.vs-arena {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  padding: 0 8px calc(10px + env(safe-area-inset-bottom));
+  gap: 8px;
+}
+.vs-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  padding: 8px;
+  transition: background 0.25s;
+}
+.vs-panel.p1 {
+  background: rgba(255, 107, 157, 0.13);
+}
+.vs-panel.p2 {
+  background: rgba(77, 150, 255, 0.13);
+}
+.vs-panel.won-round {
+  background: rgba(255, 217, 61, 0.55);
+}
+.vs-panel.locked {
+  filter: grayscale(0.9);
+  opacity: 0.55;
+}
+.vs-label {
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: bold;
+  color: #7a8f81;
+  flex: none;
+  padding: 2px 0 4px;
+}
+.vs-panel .choices {
+  flex: 1;
+  padding: 4px;
+}
+.vs-divider {
+  width: 3px;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.08);
+  margin: 12px 0;
+}
+.kanji-card.vs {
+  font-size: clamp(1.9rem, 6vw, 3.2rem);
+}
+
+/* ---------- ことばづくり ---------- */
+.kotoba-slots {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 6px 0;
+}
+.slot {
+  width: clamp(64px, 16vw, 96px);
+  height: clamp(64px, 16vw, 96px);
+  border: 3px dashed #9fcfae;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(2.2rem, 10vw, 3.4rem);
+  font-weight: bold;
+}
+.slot.filled {
+  border-style: solid;
+  border-color: #58c478;
+  background: #fff;
+  animation: pop 0.4s;
+}
+.slot-plus {
+  font-size: 1.4rem;
+  color: #9fcfae;
+  font-weight: bold;
+}
+.kotoba-slots.complete .slot {
+  background: #ffefc0;
+  border-color: #ffb03a;
+}
+.kanji-card.used {
+  visibility: hidden;
+}
+
+/* ---------- ずかん ---------- */
+.zukan-tabs {
+  display: flex;
+  gap: 8px;
+}
+.ztab {
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: #fff;
+  font-weight: bold;
+  color: #8aa392;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.08);
+}
+.ztab.active {
+  background: #58c478;
+  color: #fff;
+  box-shadow: 0 3px 0 #379a58;
+}
+.zukan-grid {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 10px;
+  padding: 10px 14px calc(20px + env(safe-area-inset-bottom));
+}
+.zukan-card {
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 16px;
+  padding: 10px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: #b9c9be;
+}
+.zukan-card.collected {
+  background: #fff;
+  color: #33413a;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.07);
+}
+.zk {
+  font-size: 2.1rem;
+  font-weight: bold;
+}
+.zw {
+  font-size: 0.8rem;
+}
+.zs {
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+}
+
+/* ---------- けっか ---------- */
+#scr-result {
+  align-items: center;
+  justify-content: center;
+}
+.result-inner {
+  text-align: center;
+  width: min(480px, 90vw);
+}
+.result-emoji {
+  font-size: 4.5rem;
+  animation: bob 1.8s ease-in-out infinite;
+}
+.result-title {
+  font-size: 2rem;
+  color: #2e7d4f;
+  margin: 0.2em 0;
+}
+.result-text {
+  font-size: 1.15rem;
+  color: #6b8a76;
+}
+.result-stars {
+  margin: 0.8em 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+.earned-star {
+  background: #fff;
+  border-radius: 12px;
+  padding: 6px 10px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.08);
+}
+.result-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 1em;
+}
+.big-btn {
+  font-size: 1.15rem;
+  font-weight: bold;
+  padding: 14px 26px;
+  border-radius: 999px;
+  background: #fff;
+  color: #6b8a76;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.1);
+}
+.big-btn.primary {
+  background: #ffb03a;
+  color: #fff;
+  box-shadow: 0 4px 0 #d98a13;
+}
+.big-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* ---------- 紙ふぶき ---------- */
+.confetti {
+  position: fixed;
+  top: -30px;
+  z-index: 99;
+  pointer-events: none;
+  animation: fall 2.2s ease-in forwards;
+}
+@keyframes fall {
+  to {
+    transform: translateY(105vh) rotate(540deg);
+    opacity: 0.6;
+  }
+}
