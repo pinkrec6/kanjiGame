@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development
 
-Vanilla HTML/CSS/JS, no build step, no dependencies, no tests. Open `index.html` directly or serve statically (`python -m http.server`). Deployment target is GitHub Pages; offline support comes from `sw.js` (cache-first). **Bump the `CACHE` version string in `sw.js` whenever any asset changes**, or installed PWAs keep serving stale files.
+Vanilla HTML/CSS/JS, no build step, no dependencies, no tests. Open `index.html` directly or serve statically (`python -m http.server`). Deployment target is GitHub Pages; offline support comes from `sw.js` (cache-first). **Bump the `CACHE` version string in `sw.js` whenever any asset changes** (and keep the `#app-ver` label in `index.html` in sync — it exists so users can see which version their device is running), or installed PWAs keep serving stale files. Pages deploys fail transiently now and then ("Deployment failed, try again later"); the fix is pushing an empty commit to trigger a fresh build.
 
 ## Architecture
 

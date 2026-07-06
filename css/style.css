@@ -149,6 +149,11 @@ button {
 .mode-btn.zukan .mode-name {
   color: #b8862f;
 }
+.app-ver {
+  margin-top: 1em;
+  font-size: 0.75rem;
+  color: #a9c2b2;
+}
 
 /* ---------- ゲーム共通 ---------- */
 .game-header {
