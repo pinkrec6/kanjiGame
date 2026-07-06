@@ -45,6 +45,11 @@
           <span class="mode-name">ことばづくり</span>
           <span class="mode-desc">かんじを あわせて ことばに</span>
         </button>
+        <button class="mode-btn puzzle" id="btn-puzzle">
+          <span class="mode-emoji">🀄</span>
+          <span class="mode-name">かんじパズル</span>
+          <span class="mode-desc">ばんに ならべて じゅくごバトル（2〜4人）</span>
+        </button>
         <button class="mode-btn zukan" id="btn-zukan">
           <span class="mode-emoji">📖</span>
           <span class="mode-name">かんじずかん</span>
@@ -112,6 +117,45 @@
     <div class="zukan-grid" id="zukan-grid"></div>
   </section>
 
+  <!-- かんじパズル: 人数えらび -->
+  <section id="scr-pzsetup" class="screen">
+    <header class="game-header">
+      <button class="back-btn" data-home>← もどる</button>
+    </header>
+    <div class="pzsetup-inner">
+      <h2 class="pzsetup-title">🀄 かんじパズル</h2>
+      <p class="pzsetup-rules">
+        てもちの かんじを ばんに おいて、たて・よこで じゅくごを つくろう！<br />
+        できた じゅくごの もじすうが とくてんに なるよ。
+      </p>
+      <p class="pzsetup-q">なんにんで あそぶ？</p>
+      <div class="pzsetup-count" id="pz-count">
+        <button class="big-btn primary" data-n="2">👧👦 2にん</button>
+        <button class="big-btn primary" data-n="3">👧👦🧒 3にん</button>
+        <button class="big-btn primary" data-n="4">👧👦🧒👶 4にん</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- かんじパズル: ゲーム -->
+  <section id="scr-puzzle" class="screen">
+    <header class="game-header">
+      <button class="back-btn" data-home>← もどる</button>
+      <div class="progress" id="pz-turninfo"></div>
+    </header>
+    <div class="pz-scores" id="pz-scores"></div>
+    <div class="pz-board" id="pz-board"></div>
+    <div class="pz-msg" id="pz-msg"></div>
+    <div class="pz-hand" id="pz-hand"></div>
+    <div class="pz-actions">
+      <button class="big-btn" id="pz-pass">パス（こうかん）</button>
+      <button class="big-btn primary" id="pz-swapok" hidden></button>
+      <button class="big-btn" id="pz-swapcancel" hidden>やめる</button>
+    </div>
+    <div class="pz-popup" id="pz-popup"></div>
+    <div class="pz-overlay" id="pz-overlay"></div>
+  </section>
+
   <!-- けっか -->
   <section id="scr-result" class="screen">
     <div class="result-inner">
@@ -127,6 +171,8 @@
   </section>
 
   <script src="js/data.js"></script>
+  <script src="js/words.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/puzzle.js"></script>
 </body>
 </html>

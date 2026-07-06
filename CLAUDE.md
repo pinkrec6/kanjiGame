@@ -13,7 +13,9 @@ Vanilla HTML/CSS/JS, no build step, no dependencies, no tests. Open `index.html`
 ## Architecture
 
 - `js/data.js` — the single source of truth: `KANJI` (240 entries: `k` kanji, `g` grade, `w` word containing `k` exactly once, `y` word reading in hiragana, `e` emoji) and `WORDS2` (two-kanji words for ことばづくり, auto-derived from `KANJI` plus a manually curated `extra` list filtered to in-set kanji).
-- `js/app.js` — all game logic. Screens are static `<section class="screen">` blocks in `index.html`, toggled via `showScreen()`. Each mode (karuta / versus / kotoba) keeps its state in a module-level object and re-renders its choices per round. Progress (stars per kanji, selected grade) persists in `localStorage` (`km_stars`, `km_grade`).
+- `js/words.js` — `JUKUGO`: ~620 two-kanji words (all chars within grades 1–3) used only by the puzzle mode.
+- `js/app.js` — logic for karuta / versus / kotoba / zukan. Screens are static `<section class="screen">` blocks in `index.html`, toggled via `showScreen()`. Each mode keeps its state in a module-level object and re-renders per round. Progress (stars per kanji, selected grade) persists in `localStorage` (`km_stars`, `km_grade`). Shared helpers (`$`, `shuffle`, `speak`, `showScreen`, `showResult`, `confetti`, `store`) are plain globals also used by puzzle.js (script order matters: data → words → app → puzzle).
+- `js/puzzle.js` — かんじパズル: 2–4 player hot-seat Scrabble-like board game. Balance constants in `PZ` were tuned by Monte Carlo simulation (see comment above `PZ`): the deck contains only dictionary-participating kanji weighted by word count (cap 4 copies), and initial board seeds are drawn from high-connectivity "hub" kanji placed non-adjacent. Do not switch deck/seeds to uniform-random over all 440 kanji — first-turn playability collapses from ~94% to ~34%.
 - Clue cards render the target kanji as a blank (`renderClue`), so distractor choices must never include any kanji visible in the clue word — `pickDistractors` enforces this.
 
 ## Data invariants (validate when editing data.js)

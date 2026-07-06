@@ -431,6 +431,219 @@ button {
   visibility: hidden;
 }
 
+/* ---------- かんじパズル ---------- */
+.mode-btn.puzzle .mode-name {
+  color: #9b59d0;
+}
+.pzsetup-inner {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 20px calc(20px + env(safe-area-inset-bottom));
+}
+.pzsetup-title {
+  font-size: 2rem;
+  color: #9b59d0;
+}
+.pzsetup-rules {
+  margin: 0.8em 0 1.4em;
+  color: #6b8a76;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+.pzsetup-q {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 0.7em;
+}
+.pzsetup-count {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(320px, 80vw);
+}
+
+#scr-puzzle {
+  position: relative;
+}
+.pz-scores {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  padding: 0 10px;
+  flex: none;
+}
+.pz-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  opacity: 0.55;
+  border: 3px solid transparent;
+}
+.pz-chip b {
+  font-size: 1.1rem;
+}
+.pz-chip.active {
+  opacity: 1;
+  transform: scale(1.06);
+}
+.pz-chip.pp1.active {
+  border-color: #ff6b9d;
+}
+.pz-chip.pp2.active {
+  border-color: #4d96ff;
+}
+.pz-chip.pp3.active {
+  border-color: #ff9f45;
+}
+.pz-chip.pp4.active {
+  border-color: #58c478;
+}
+
+.pz-board {
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  width: min(94vw, 46vh, 460px);
+  margin: 8px auto 4px;
+}
+.pz-cell {
+  aspect-ratio: 1;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 2px solid rgba(0, 0, 0, 0.06);
+  font-size: clamp(1.1rem, 4.2vw, 1.9rem);
+  font-weight: bold;
+  color: #33413a;
+  padding: 0;
+}
+.pz-cell.filled {
+  background: #fffdf5;
+  border-color: #ffd98a;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.07);
+}
+.pz-cell.legal {
+  background: #d9f5e2;
+  border: 2px dashed #58c478;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+.pz-msg {
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: bold;
+  color: #8aa392;
+  min-height: 1.4em;
+  padding: 2px 10px;
+  flex: none;
+}
+.pz-hand {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  padding: 4px 8px;
+}
+.kanji-card.pz-tile {
+  aspect-ratio: 1;
+  width: clamp(44px, 11.5vw, 62px);
+  font-size: clamp(1.3rem, 5vw, 2rem);
+  border-radius: 12px;
+  border-bottom-width: 4px;
+}
+.kanji-card.pz-tile.picked {
+  background: #ffe9a8;
+  border-bottom-color: #ffb03a;
+  transform: translateY(-6px);
+}
+.kanji-card.pz-tile.swapsel {
+  background: #ffd7d7;
+  border-bottom-color: #e07a7a;
+  transform: translateY(-6px);
+}
+.pz-actions {
+  flex: none;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  padding: 6px 10px calc(12px + env(safe-area-inset-bottom));
+}
+.pz-actions .big-btn {
+  font-size: 1rem;
+  padding: 10px 20px;
+}
+
+.pz-popup {
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.7);
+  background: #fff;
+  border-radius: 20px;
+  padding: 16px 26px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.25s;
+  z-index: 20;
+}
+.pz-popup.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+.pz-pts {
+  font-size: 1.6rem;
+  font-weight: bold;
+  color: #e0558a;
+}
+.pz-word {
+  font-size: 1.4rem;
+  font-weight: bold;
+}
+.pz-word span {
+  font-size: 0.95rem;
+  color: #8aa392;
+}
+
+.pz-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, rgba(232, 248, 238, 0.97), rgba(210, 240, 247, 0.97));
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 30;
+  border-radius: 0;
+}
+.pz-overlay.show {
+  display: flex;
+}
+.pz-ov-emoji {
+  font-size: 4.5rem;
+  animation: bob 1.6s ease-in-out infinite;
+}
+.pz-ov-name {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #2e7d4f;
+  margin: 0.3em 0;
+}
+.pz-ov-tap {
+  color: #8aa392;
+  font-weight: bold;
+}
+
 /* ---------- ずかん ---------- */
 .zukan-tabs {
   display: flex;

@@ -1,11 +1,13 @@
 /* かんじのもり — Service Worker（オフライン対応） */
-const CACHE = "kanjinomori-v2";
+const CACHE = "kanjinomori-v3";
 const ASSETS = [
   "./",
   "./index.html",
   "./css/style.css",
   "./js/data.js",
+  "./js/words.js",
   "./js/app.js",
+  "./js/puzzle.js",
   "./manifest.webmanifest",
   "./icons/icon-180.png",
   "./icons/icon-512.png",
