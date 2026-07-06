@@ -117,23 +117,39 @@ function pzNeighbors(i) {
   return out;
 }
 
-// idx に ch を置いたときにできる縦横の「つながり」を列挙する
-// 返り値: [{ str, len, pairs:[{w, y, known}], allKnown }]（2文字以上の並びのみ）
-function pzRuns(idx, ch) {
+// idx に ch を置いたときの縦横のつながりを調べる
+// 返り値: [{ chars, pos }] — pos は置いた文字の位置（つながりが1文字だけの方向も含む）
+function pzScan(idx, ch) {
   const b = puzzle.board;
   const r = Math.floor(idx / PZ.SIZE);
   const c = idx % PZ.SIZE;
-  const runs = [];
+  const out = [];
 
   for (const dir of ["h", "v"]) {
     const chars = [ch];
+    let pos = 0;
     if (dir === "h") {
-      for (let x = c - 1; x >= 0 && b[r * PZ.SIZE + x]; x--) chars.unshift(b[r * PZ.SIZE + x]);
+      for (let x = c - 1; x >= 0 && b[r * PZ.SIZE + x]; x--) {
+        chars.unshift(b[r * PZ.SIZE + x]);
+        pos++;
+      }
       for (let x = c + 1; x < PZ.SIZE && b[r * PZ.SIZE + x]; x++) chars.push(b[r * PZ.SIZE + x]);
     } else {
-      for (let y = r - 1; y >= 0 && b[y * PZ.SIZE + c]; y--) chars.unshift(b[y * PZ.SIZE + c]);
+      for (let y = r - 1; y >= 0 && b[y * PZ.SIZE + c]; y--) {
+        chars.unshift(b[y * PZ.SIZE + c]);
+        pos++;
+      }
       for (let y = r + 1; y < PZ.SIZE && b[y * PZ.SIZE + c]; y++) chars.push(b[y * PZ.SIZE + c]);
     }
+    out.push({ chars, pos });
+  }
+  return out;
+}
+
+// じしょモード用: 2文字以上のつながりを隣接ペアつきで列挙
+function pzRuns(idx, ch) {
+  const runs = [];
+  for (const { chars } of pzScan(idx, ch)) {
     if (chars.length < 2) continue;
     const pairs = [];
     for (let i = 0; i + 1 < chars.length; i++) {
@@ -148,6 +164,29 @@ function pzRuns(idx, ch) {
     });
   }
   return runs;
+}
+
+// フリーモード用: 「いま置いた文字を含む」部分列（2文字以上）をすべて列挙。
+// 例: 三日月 に 食 を足す → 月食・日月食・三日月食 が候補。
+// すでに置いてあった 三日 などは前の番で採点済みなので候補にしない（二重加点防止）。
+function pzCandidates(idx, ch) {
+  const cands = [];
+  for (const { chars, pos } of pzScan(idx, ch)) {
+    if (chars.length < 2) continue;
+    for (let i = 0; i <= pos; i++) {
+      for (let j = Math.max(i + 1, pos); j < chars.length; j++) {
+        const str = chars.slice(i, j + 1).join("");
+        cands.push({
+          str,
+          len: j - i + 1,
+          y: PZ_DICT.get(str) || null,
+          known: PZ_DICT.has(str),
+        });
+      }
+    }
+  }
+  cands.sort((a, b) => a.len - b.len);
+  return cands;
 }
 
 // じしょモードの判定: つながりの隣接ペアがすべて辞書にあるときだけ置ける
@@ -329,55 +368,49 @@ function pzShowPointsPopup(score, words) {
 /* ---------- フリーモード: 人間が熟語を判定する ---------- */
 function pzPlaceFree(idx, ch, p) {
   puzzle.busy = true;
-  const runs = pzRuns(idx, ch);
+  const cands = pzCandidates(idx, ch);
   pzCommitTile(idx, ch, p);
   pzRenderAll();
 
-  if (!runs.length) {
+  if (!cands.length) {
     // 2文字以上の並びができていない → 0てんでそのまま次へ
     pzShowPointsPopup(0, []);
     return;
   }
 
-  // 判定パネル: 並びごとに ○/× を決めてもらう（初期値は辞書判定）
-  puzzle.judge = { runs, marks: runs.map((r) => r.allKnown), ch };
+  // 判定パネル: 候補のことばごとに ○/× を決めてもらう（初期値は辞書判定）
+  puzzle.judge = { cands, marks: cands.map((c) => c.known), ch };
   pzRenderJudge();
   $("#pz-judge").classList.add("show");
 }
 
 function pzRenderJudge() {
-  const { runs, marks } = puzzle.judge;
+  const { cands, marks } = puzzle.judge;
   const box = $("#pz-judge-runs");
   box.innerHTML = "";
-  runs.forEach((r, i) => {
+  cands.forEach((cand, i) => {
     const row = document.createElement("button");
     row.className = "pz-run" + (marks[i] ? " yes" : " no");
-    const hints = r.pairs
-      .filter((x) => x.known)
-      .map((x) => `${x.w}（${x.y}）`)
-      .join("・");
     row.innerHTML = `
       <span class="pz-run-mark">${marks[i] ? "⭕" : "❌"}</span>
-      <span class="pz-run-str">${r.str}</span>
-      <span class="pz-run-pts">${marks[i] ? "+" + r.len : "0"}てん</span>
-      ${hints ? `<span class="pz-run-hint">💡 ${hints}</span>` : ""}`;
+      <span class="pz-run-str">${cand.str}</span>
+      <span class="pz-run-pts">${marks[i] ? "+" + cand.len : "0"}てん</span>
+      ${cand.known ? `<span class="pz-run-hint">💡 ${cand.y}（じしょに あるよ）</span>` : ""}`;
     row.addEventListener("pointerdown", () => {
       puzzle.judge.marks[i] = !puzzle.judge.marks[i];
       pzRenderJudge();
     });
     box.appendChild(row);
   });
-  const total = runs.reduce((s, r, i) => s + (marks[i] ? r.len : 0), 0);
+  const total = cands.reduce((s, c, i) => s + (marks[i] ? c.len : 0), 0);
   $("#pz-judge-sum").textContent = `ごうけい +${total}てん`;
 }
 
 function pzJudgeConfirm() {
-  const { runs, marks, ch } = puzzle.judge;
+  const { cands, marks, ch } = puzzle.judge;
   const p = puzzle.players[puzzle.current];
-  const score = runs.reduce((s, r, i) => s + (marks[i] ? r.len : 0), 0);
-  const words = runs
-    .filter((_, i) => marks[i])
-    .flatMap((r) => (r.len === 2 ? [{ w: r.str, y: PZ_DICT.get(r.str) || null }] : [{ w: r.str, y: null }]));
+  const score = cands.reduce((s, c, i) => s + (marks[i] ? c.len : 0), 0);
+  const words = cands.filter((_, i) => marks[i]).map((c) => ({ w: c.str, y: c.y }));
   p.score += score;
   if (score > 0) {
     store.addStar(ch);
