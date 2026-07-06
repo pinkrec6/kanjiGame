@@ -1,5 +1,5 @@
 /* かんじのもり — Service Worker（オフライン対応） */
-const CACHE = "kanjinomori-v3";
+const CACHE = "kanjinomori-v4";
 const ASSETS = [
   "./",
   "./index.html",

@@ -615,6 +615,95 @@ button {
   color: #8aa392;
 }
 
+.pzsetup-modedesc {
+  color: #8aa392;
+  font-size: 0.9rem;
+  min-height: 2.6em;
+  margin: -0.6em 0 0.8em;
+  line-height: 1.6;
+}
+
+/* フリーモードの判定パネル */
+.pz-judge {
+  position: absolute;
+  inset: 0;
+  background: rgba(58, 74, 63, 0.45);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 25;
+  padding: 16px;
+}
+.pz-judge.show {
+  display: flex;
+}
+.pz-judge-box {
+  background: #fff;
+  border-radius: 22px;
+  padding: 18px 20px calc(18px + env(safe-area-inset-bottom));
+  width: min(440px, 94vw);
+  max-height: 86%;
+  overflow-y: auto;
+  text-align: center;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.3);
+}
+.pz-judge-title {
+  font-size: 1.4rem;
+  color: #2e7d4f;
+}
+.pz-judge-help {
+  font-size: 0.85rem;
+  color: #8aa392;
+  margin: 0.3em 0 0.8em;
+}
+.pz-run {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  border-radius: 14px;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  border: 3px solid transparent;
+}
+.pz-run.yes {
+  background: #e7f7ec;
+  border-color: #58c478;
+}
+.pz-run.no {
+  background: #f4f4f4;
+  border-color: #ddd;
+  opacity: 0.75;
+}
+.pz-run-mark {
+  font-size: 1.3rem;
+}
+.pz-run-str {
+  font-size: 1.6rem;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+}
+.pz-run-pts {
+  font-weight: bold;
+  color: #e0558a;
+}
+.pz-run.no .pz-run-pts {
+  color: #aaa;
+}
+.pz-run-hint {
+  grid-column: 1 / -1;
+  font-size: 0.82rem;
+  color: #8aa392;
+}
+.pz-judge-sum {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #e0558a;
+  margin: 0.4em 0 0.8em;
+}
+
 .pz-overlay {
   position: absolute;
   inset: 0;

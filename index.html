@@ -128,6 +128,12 @@
         てもちの かんじを ばんに おいて、たて・よこで じゅくごを つくろう！<br />
         できた じゅくごの もじすうが とくてんに なるよ。
       </p>
+      <p class="pzsetup-q">ルールを えらんでね</p>
+      <div class="grade-chips" id="pz-mode">
+        <button class="chip" data-mode="dict">📖 じしょモード</button>
+        <button class="chip" data-mode="free">🆓 フリーモード</button>
+      </div>
+      <p class="pzsetup-modedesc" id="pz-mode-desc"></p>
       <p class="pzsetup-q">なんにんで あそぶ？</p>
       <div class="pzsetup-count" id="pz-count">
         <button class="big-btn primary" data-n="2">👧👦 2にん</button>
@@ -153,6 +159,15 @@
       <button class="big-btn" id="pz-swapcancel" hidden>やめる</button>
     </div>
     <div class="pz-popup" id="pz-popup"></div>
+    <div class="pz-judge" id="pz-judge">
+      <div class="pz-judge-box">
+        <h3 class="pz-judge-title">じゅくごに なった？</h3>
+        <p class="pz-judge-help">ならびを タップして ⭕❌を きめてね</p>
+        <div id="pz-judge-runs"></div>
+        <div class="pz-judge-sum" id="pz-judge-sum"></div>
+        <button class="big-btn primary" id="pz-judge-ok">けってい！</button>
+      </div>
+    </div>
     <div class="pz-overlay" id="pz-overlay"></div>
   </section>
 

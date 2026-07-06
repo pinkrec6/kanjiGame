@@ -49,6 +49,8 @@ const puzzle = {
   swapSel: new Set(),
   busy: false,
   playerCount: 2,
+  free: false, // フリーモード: どこでも置けて、熟語判定は人間がする
+  judge: null, // フリーモードの判定パネル用 {runs, marks, ch}
 };
 
 /* ---------- セットアップ ---------- */
@@ -56,14 +58,19 @@ function showPuzzleSetup() {
   showScreen("#scr-pzsetup");
 }
 
-function startPuzzle(count) {
+function startPuzzle(count, free) {
   puzzle.playerCount = count;
-  lastMode = () => startPuzzle(count);
+  puzzle.free = !!free;
+  lastMode = () => startPuzzle(count, free);
 
-  // 山札: 熟語に参加する漢字だけを、参加数で重みづけして投入
+  // 山札: 熟語に参加する漢字を参加数で重みづけして投入。
+  // フリーモードは人間が判定するので、辞書外の漢字も1枚ずつ混ぜる
   const deck = [];
   for (const [k, deg] of PZ_DEG) {
     for (let i = 0; i < Math.min(deg, PZ.COPY_CAP); i++) deck.push(k);
+  }
+  if (puzzle.free) {
+    for (const x of KANJI) if (!PZ_DEG.has(x.k)) deck.push(x.k);
   }
   puzzle.deck = shuffle(deck);
 
@@ -89,6 +96,9 @@ function startPuzzle(count) {
   puzzle.selected = null;
   puzzle.swapMode = false;
   puzzle.busy = false;
+  puzzle.judge = null;
+  $("#pz-judge").classList.remove("show");
+  $("#pz-popup").classList.remove("show");
 
   showScreen("#scr-puzzle");
   pzRenderAll();
@@ -107,15 +117,13 @@ function pzNeighbors(i) {
   return out;
 }
 
-// idx に ch を置いたときにできる縦横の「つながり」を調べる
-// 返り値: { ok, score, words:[{w,y}] } — つながりの中の隣接ペアが
-// すべて辞書にあるときだけ ok。得点はつながりの文字数の合計。
-function pzCheck(idx, ch) {
+// idx に ch を置いたときにできる縦横の「つながり」を列挙する
+// 返り値: [{ str, len, pairs:[{w, y, known}], allKnown }]（2文字以上の並びのみ）
+function pzRuns(idx, ch) {
   const b = puzzle.board;
   const r = Math.floor(idx / PZ.SIZE);
   const c = idx % PZ.SIZE;
-  let score = 0;
-  const words = [];
+  const runs = [];
 
   for (const dir of ["h", "v"]) {
     const chars = [ch];
@@ -127,20 +135,40 @@ function pzCheck(idx, ch) {
       for (let y = r + 1; y < PZ.SIZE && b[y * PZ.SIZE + c]; y++) chars.push(b[y * PZ.SIZE + c]);
     }
     if (chars.length < 2) continue;
+    const pairs = [];
     for (let i = 0; i + 1 < chars.length; i++) {
       const w = chars[i] + chars[i + 1];
-      if (!PZ_DICT.has(w)) return { ok: false, score: 0, words: [] };
-      words.push({ w, y: PZ_DICT.get(w) });
+      pairs.push({ w, y: PZ_DICT.get(w) || null, known: PZ_DICT.has(w) });
     }
-    score += chars.length;
+    runs.push({
+      str: chars.join(""),
+      len: chars.length,
+      pairs,
+      allKnown: pairs.every((p) => p.known),
+    });
   }
-  return { ok: words.length > 0, score, words };
+  return runs;
+}
+
+// じしょモードの判定: つながりの隣接ペアがすべて辞書にあるときだけ置ける
+function pzCheck(idx, ch) {
+  const runs = pzRuns(idx, ch);
+  if (!runs.length || runs.some((r) => !r.allKnown)) return { ok: false, score: 0, words: [] };
+  return {
+    ok: true,
+    score: runs.reduce((s, r) => s + r.len, 0),
+    words: runs.flatMap((r) => r.pairs),
+  };
 }
 
 function pzLegalCells(ch) {
   const out = [];
   for (let i = 0; i < puzzle.board.length; i++) {
     if (puzzle.board[i]) continue;
+    if (puzzle.free) {
+      out.push(i); // フリーモードはどこでもOK
+      continue;
+    }
     if (!pzNeighbors(i).some((n) => puzzle.board[n])) continue;
     if (pzCheck(i, ch).ok) out.push(i);
   }
@@ -148,7 +176,7 @@ function pzLegalCells(ch) {
 }
 
 function pzAnyMove(player) {
-  return player.hand.some((ch) => pzLegalCells(ch).length > 0);
+  return puzzle.free || player.hand.some((ch) => pzLegalCells(ch).length > 0);
 }
 
 /* ---------- 描画 ---------- */
@@ -174,7 +202,8 @@ function pzRenderScores() {
 
 function pzRenderBoard() {
   const box = $("#pz-board");
-  const legal = puzzle.selected !== null && !puzzle.swapMode
+  // フリーモードはどこでも置けるので、ハイライトは出さない
+  const legal = puzzle.selected !== null && !puzzle.swapMode && !puzzle.free
     ? new Set(pzLegalCells(puzzle.players[puzzle.current].hand[puzzle.selected]))
     : new Set();
   box.innerHTML = "";
@@ -218,10 +247,14 @@ function pzRenderActions() {
     $("#pz-swapok").hidden = true;
     $("#pz-swapcancel").hidden = true;
     if (puzzle.selected !== null) {
-      const cells = pzLegalCells(p.hand[puzzle.selected]);
-      msg.textContent = cells.length
-        ? "ひかっている マスに おけるよ！"
-        : "その カードは おけないよ…べつの カードは？";
+      if (puzzle.free) {
+        msg.textContent = "すきな あいてる マスに おいてね";
+      } else {
+        const cells = pzLegalCells(p.hand[puzzle.selected]);
+        msg.textContent = cells.length
+          ? "ひかっている マスに おけるよ！"
+          : "その カードは おけないよ…べつの カードは？";
+      }
     } else {
       msg.textContent = pzAnyMove(p)
         ? "カードを えらんでね"
@@ -248,33 +281,114 @@ function pzTapHand(i) {
 
 function pzTapCell(idx) {
   if (puzzle.busy || puzzle.swapMode || puzzle.selected === null) return;
+  if (puzzle.board[idx]) return;
   const p = puzzle.players[puzzle.current];
   const ch = p.hand[puzzle.selected];
+
+  if (puzzle.free) {
+    pzPlaceFree(idx, ch, p);
+    return;
+  }
+
   const res = pzCheck(idx, ch);
-  if (!res.ok || puzzle.board[idx]) return;
+  if (!res.ok) return;
 
   puzzle.busy = true;
-  puzzle.board[idx] = ch;
-  p.hand.splice(puzzle.selected, 1);
-  puzzle.selected = null;
+  pzCommitTile(idx, ch, p);
   p.score += res.score;
   store.addStar(ch);
-  if (puzzle.deck.length && p.hand.length < PZ.HAND) p.hand.push(puzzle.deck.pop());
 
   pzRenderAll();
   confetti(Math.min(8 + res.score * 2, 20));
   speak(res.words.map((x) => x.y).join("、"));
+  pzShowPointsPopup(res.score, res.words);
+}
 
+// タイルを盤に置いて手札を補充する（両モード共通）
+function pzCommitTile(idx, ch, p) {
+  puzzle.board[idx] = ch;
+  p.hand.splice(puzzle.selected, 1);
+  puzzle.selected = null;
+  if (puzzle.deck.length && p.hand.length < PZ.HAND) p.hand.push(puzzle.deck.pop());
+}
+
+function pzShowPointsPopup(score, words) {
   const popup = $("#pz-popup");
   popup.innerHTML =
-    `<div class="pz-pts">+${res.score}てん</div>` +
-    res.words.map((x) => `<div class="pz-word">${x.w}<span>（${x.y}）</span></div>`).join("");
+    `<div class="pz-pts">${score > 0 ? "+" + score + "てん" : "0てん"}</div>` +
+    words
+      .map((x) => `<div class="pz-word">${x.w}<span>${x.y ? "（" + x.y + "）" : ""}</span></div>`)
+      .join("");
   popup.classList.add("show");
-
   setTimeout(() => {
     popup.classList.remove("show");
     pzEndTurn();
-  }, 1600);
+  }, score > 0 ? 1600 : 900);
+}
+
+/* ---------- フリーモード: 人間が熟語を判定する ---------- */
+function pzPlaceFree(idx, ch, p) {
+  puzzle.busy = true;
+  const runs = pzRuns(idx, ch);
+  pzCommitTile(idx, ch, p);
+  pzRenderAll();
+
+  if (!runs.length) {
+    // 2文字以上の並びができていない → 0てんでそのまま次へ
+    pzShowPointsPopup(0, []);
+    return;
+  }
+
+  // 判定パネル: 並びごとに ○/× を決めてもらう（初期値は辞書判定）
+  puzzle.judge = { runs, marks: runs.map((r) => r.allKnown), ch };
+  pzRenderJudge();
+  $("#pz-judge").classList.add("show");
+}
+
+function pzRenderJudge() {
+  const { runs, marks } = puzzle.judge;
+  const box = $("#pz-judge-runs");
+  box.innerHTML = "";
+  runs.forEach((r, i) => {
+    const row = document.createElement("button");
+    row.className = "pz-run" + (marks[i] ? " yes" : " no");
+    const hints = r.pairs
+      .filter((x) => x.known)
+      .map((x) => `${x.w}（${x.y}）`)
+      .join("・");
+    row.innerHTML = `
+      <span class="pz-run-mark">${marks[i] ? "⭕" : "❌"}</span>
+      <span class="pz-run-str">${r.str}</span>
+      <span class="pz-run-pts">${marks[i] ? "+" + r.len : "0"}てん</span>
+      ${hints ? `<span class="pz-run-hint">💡 ${hints}</span>` : ""}`;
+    row.addEventListener("pointerdown", () => {
+      puzzle.judge.marks[i] = !puzzle.judge.marks[i];
+      pzRenderJudge();
+    });
+    box.appendChild(row);
+  });
+  const total = runs.reduce((s, r, i) => s + (marks[i] ? r.len : 0), 0);
+  $("#pz-judge-sum").textContent = `ごうけい +${total}てん`;
+}
+
+function pzJudgeConfirm() {
+  const { runs, marks, ch } = puzzle.judge;
+  const p = puzzle.players[puzzle.current];
+  const score = runs.reduce((s, r, i) => s + (marks[i] ? r.len : 0), 0);
+  const words = runs
+    .filter((_, i) => marks[i])
+    .flatMap((r) => (r.len === 2 ? [{ w: r.str, y: PZ_DICT.get(r.str) || null }] : [{ w: r.str, y: null }]));
+  p.score += score;
+  if (score > 0) {
+    store.addStar(ch);
+    confetti(Math.min(8 + score * 2, 20));
+    const known = words.filter((x) => x.y).map((x) => x.y);
+    if (known.length) speak(known.join("、"));
+  }
+  puzzle.judge = null;
+  $("#pz-judge").classList.remove("show");
+  pzRenderScores();
+  pzShowPointsPopup(score, words);
 }
 
 function pzPass() {
@@ -358,11 +472,31 @@ function pzFinish() {
 }
 
 /* ---------- 初期化 ---------- */
+function pzMode() {
+  return localStorage.getItem("km_pzmode") || "dict";
+}
+
+function pzUpdateModeChips() {
+  $$("#pz-mode .chip").forEach((c) => c.classList.toggle("active", c.dataset.mode === pzMode()));
+  $("#pz-mode-desc").textContent =
+    pzMode() === "free"
+      ? "どこにでも おける！じゅくごに なったかは みんなで はんてい（⭕❌）"
+      : "アプリが じゅくごを はんてい。おけるマスが ひかるよ";
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   $("#btn-puzzle").addEventListener("pointerdown", showPuzzleSetup);
-  $$("#pz-count .big-btn").forEach((b) =>
-    b.addEventListener("pointerdown", () => startPuzzle(Number(b.dataset.n)))
+  pzUpdateModeChips();
+  $$("#pz-mode .chip").forEach((c) =>
+    c.addEventListener("pointerdown", () => {
+      localStorage.setItem("km_pzmode", c.dataset.mode);
+      pzUpdateModeChips();
+    })
   );
+  $$("#pz-count .big-btn").forEach((b) =>
+    b.addEventListener("pointerdown", () => startPuzzle(Number(b.dataset.n), pzMode() === "free"))
+  );
+  $("#pz-judge-ok").addEventListener("pointerdown", pzJudgeConfirm);
   $("#pz-pass").addEventListener("pointerdown", pzPass);
   $("#pz-swapok").addEventListener("pointerdown", pzSwapConfirm);
   $("#pz-swapcancel").addEventListener("pointerdown", pzSwapCancel);
