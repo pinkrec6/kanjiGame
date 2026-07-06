@@ -44,11 +44,14 @@ function pool() {
   return g === "all" ? KANJI : KANJI.filter((x) => x.g === Number(g));
 }
 
-// 出題対象以外からダミーを選ぶ（読み札に写っている漢字は除外）
+// 出題対象以外からダミーを選ぶ
+// ・読み札に写っている漢字は除外
+// ・同じ読みのことばを持つ漢字も除外（火/日=ひ、早い/速い=はやい 等で正解が2つになるのを防ぐ）
 function pickDistractors(target, count) {
   const used = new Set([...target.w]);
-  const candidates = pool().filter((x) => !used.has(x.k));
-  const fromAll = KANJI.filter((x) => !used.has(x.k) && !candidates.includes(x));
+  const ok = (x) => !used.has(x.k) && x.y !== target.y;
+  const candidates = pool().filter(ok);
+  const fromAll = KANJI.filter((x) => ok(x) && !candidates.includes(x));
   const picked = shuffle(candidates).slice(0, count);
   // 学年しぼり込みで足りないときは全体から補う
   let i = 0;
