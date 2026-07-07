@@ -453,6 +453,15 @@ button {
   font-size: 2rem;
   color: #9b59d0;
 }
+.pzsetup-grade {
+  margin-top: 0.5em;
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #d98a13;
+  background: #fff8e8;
+  border-radius: 999px;
+  padding: 6px 14px;
+}
 .pzsetup-rules {
   margin: 0.8em 0 1.4em;
   color: #6b8a76;

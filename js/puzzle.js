@@ -50,11 +50,29 @@ const puzzle = {
   busy: false,
   playerCount: 2,
   free: false, // フリーモード: どこでも置けて、熟語判定は人間がする
-  judge: null, // フリーモードの判定パネル用 {runs, marks, ch}
+  judge: null, // フリーモードの判定パネル用 {cands, marks, ch}
+  dict: PZ_DICT, // 学年でしぼった辞書（ゲーム開始時に作る）
+  deg: PZ_DEG, // 同じくしぼった熟語参加数
 };
+
+// ホームで選んだ学年に合わせた漢字の範囲。
+// ことばのゲームなので「その学年まで」の累積にする（２ねんせい＝１・２年の漢字）。
+function pzGradeSet() {
+  const g = store.grade;
+  if (g === "all") return null;
+  const max = Number(g);
+  return new Set(KANJI.filter((x) => x.g <= max).map((x) => x.k));
+}
+
+function pzGradeLabel() {
+  return { 1: "１ねんせいの かんじだけ", 2: "１・２ねんせいの かんじ", 3: "１〜３ねんせいの かんじ" }[
+    store.grade
+  ] || "１〜３ねんせいの かんじ ぜんぶ";
+}
 
 /* ---------- セットアップ ---------- */
 function showPuzzleSetup() {
+  $("#pz-grade-info").textContent = `つかう かんじ: ${pzGradeLabel()}（ホームで かえられるよ）`;
   showScreen("#scr-pzsetup");
 }
 
@@ -63,21 +81,36 @@ function startPuzzle(count, free) {
   puzzle.free = !!free;
   lastMode = () => startPuzzle(count, free);
 
+  // 学年でしぼった辞書を作る（ホームの学年せんたくに従う）
+  const gset = pzGradeSet();
+  puzzle.dict = new Map();
+  for (const [w, y] of PZ_DICT) {
+    if (!gset || [...w].every((c) => gset.has(c))) puzzle.dict.set(w, y);
+  }
+  puzzle.deg = new Map();
+  for (const w of puzzle.dict.keys()) {
+    for (const c of w) puzzle.deg.set(c, (puzzle.deg.get(c) || 0) + 1);
+  }
+
   // 山札: 熟語に参加する漢字を参加数で重みづけして投入。
-  // フリーモードは人間が判定するので、辞書外の漢字も1枚ずつ混ぜる
+  // フリーモードは人間が判定するので、範囲内の辞書外漢字も1枚ずつ混ぜる
   const deck = [];
-  for (const [k, deg] of PZ_DEG) {
+  for (const [k, deg] of puzzle.deg) {
     for (let i = 0; i < Math.min(deg, PZ.COPY_CAP); i++) deck.push(k);
   }
   if (puzzle.free) {
-    for (const x of KANJI) if (!PZ_DEG.has(x.k)) deck.push(x.k);
+    for (const x of KANJI) {
+      if (!puzzle.deg.has(x.k) && (!gset || gset.has(x.k))) deck.push(x.k);
+    }
   }
   puzzle.deck = shuffle(deck);
 
   // 盤面: よくつながる漢字（ハブ）を、縦横で隣り合わないように配置
   puzzle.board = Array(PZ.SIZE * PZ.SIZE).fill(null);
-  const hubs = shuffle([...PZ_DEG].filter(([, d]) => d >= PZ.HUB_MIN).map(([k]) => k))
-    .concat(shuffle([...PZ_DEG.keys()])); // ハブが足りないときの予備
+  const ranked = [...puzzle.deg.entries()].sort((a, b) => b[1] - a[1]).map(([k]) => k);
+  let hubPool = [...puzzle.deg.entries()].filter(([, d]) => d >= PZ.HUB_MIN).map(([k]) => k);
+  if (hubPool.length < 16) hubPool = ranked.slice(0, 16); // 学年しぼり込みでハブが少ないとき
+  const hubs = shuffle(hubPool).concat(shuffle(ranked)); // 予備つき
   const cells = shuffle([...Array(PZ.SIZE * PZ.SIZE).keys()]);
   let placed = 0;
   for (const cell of cells) {
@@ -154,7 +187,7 @@ function pzRuns(idx, ch) {
     const pairs = [];
     for (let i = 0; i + 1 < chars.length; i++) {
       const w = chars[i] + chars[i + 1];
-      pairs.push({ w, y: PZ_DICT.get(w) || null, known: PZ_DICT.has(w) });
+      pairs.push({ w, y: puzzle.dict.get(w) || null, known: puzzle.dict.has(w) });
     }
     runs.push({
       str: chars.join(""),
@@ -179,8 +212,8 @@ function pzCandidates(idx, ch) {
         cands.push({
           str,
           len: j - i + 1,
-          y: PZ_DICT.get(str) || null,
-          known: PZ_DICT.has(str),
+          y: puzzle.dict.get(str) || null,
+          known: puzzle.dict.has(str),
         });
       }
     }
